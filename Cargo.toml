@@ -1,0 +1,13 @@
+[package]
+name = "mcp2210"
+version = "0.1.0"
+authors = ["Joonas Javanainen <joonas.javanainen@gmail.com>"]
+homepage = "https://github.com/Gekkio/mcp2210-rs"
+repository = "https://github.com/Gekkio/mcp2210-rs"
+license = "MIT/Apache-2.0"
+
+[dependencies]
+bitflags = "1.0"
+failure = "0.1"
+libudev = "0.2"
+nix = "0.11"
