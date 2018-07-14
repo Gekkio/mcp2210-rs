@@ -1,5 +1,18 @@
 # mcp2210-rs: Microchip MCP2210 library using hiddraw (Linux-only)
 
+```rust
+let mut mcp = Mcp2210::open("/dev/hidraw0")?;
+mcp.set_spi_transfer_settings(&SpiTransferSettings {
+    bit_rate: 1_000_000,
+    bytes_per_tx: 4,
+    spi_mode: SpiMode::Mode0,
+    ..Default::default()
+})?;
+let mut from_slave = Vec::new();
+mcp.spi_transfer_to_end(b"PING", &mut from_slave)?;
+handle_response(&from_slave);
+```
+
 ## License
 
 Licensed under either of
