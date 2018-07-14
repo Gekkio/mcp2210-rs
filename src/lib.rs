@@ -284,7 +284,7 @@ impl Mcp2210 {
         SpiTransferSettings::from_buffer(&self.response_buffer)
             .map_err(Mcp2210Error::InvalidResponse)
     }
-    pub fn get_nvram_chip_gettings(&mut self) -> Result<ChipSettings, Mcp2210Error> {
+    pub fn get_nvram_chip_settings(&mut self) -> Result<ChipSettings, Mcp2210Error> {
         self.do_sub_command(0x61, 0x20, |_| {})?;
         ChipSettings::from_buffer(&self.response_buffer).map_err(Mcp2210Error::InvalidResponse)
     }
