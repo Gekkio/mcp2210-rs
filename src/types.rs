@@ -1,4 +1,4 @@
-use super::Buffer;
+use super::{Buffer, MAX_BIT_RATE};
 use utils::{as_bool, as_u16, as_u32};
 
 #[derive(Copy, Clone, Debug, PartialEq, Eq)]
@@ -38,6 +38,7 @@ bitflags!(
         const ALL_LOW = 0b000000000;
     }
 );
+
 bitflags!(
     pub struct GpioValue: u16 {
         const GP0 = 0b000000001;
@@ -53,6 +54,13 @@ bitflags!(
         const ALL_LOW = 0b000000000;
     }
 );
+
+impl Default for GpioValue {
+    fn default() -> GpioValue {
+        GpioValue::ALL_HIGH
+    }
+}
+
 bitflags!(
     pub struct GpioDirection: u16 {
         const GP0DIR = 0b000000001;
@@ -68,6 +76,12 @@ bitflags!(
         const ALL_OUTPUTS = 0b000000000;
     }
 );
+
+impl Default for GpioDirection {
+    fn default() -> GpioDirection {
+        GpioDirection::ALL_INPUTS
+    }
+}
 
 #[derive(Copy, Clone, Debug, PartialEq, Eq)]
 pub enum PinMode {
@@ -112,6 +126,18 @@ pub struct UsbParameters {
     power_option: UsbPowerOption,
     remote_wakeup_capable: bool,
     requested_current: u8,
+}
+
+impl Default for UsbParameters {
+    fn default() -> UsbParameters {
+        UsbParameters {
+            vid: 0x04d8,
+            pid: 0x00de,
+            power_option: UsbPowerOption::HostPowered,
+            remote_wakeup_capable: false,
+            requested_current: 50,
+        }
+    }
 }
 
 impl UsbParameters {
@@ -235,6 +261,12 @@ pub enum NvramAccessControl {
     PermanentlyLocked = 0x80,
 }
 
+impl Default for NvramAccessControl {
+    fn default() -> NvramAccessControl {
+        NvramAccessControl::None
+    }
+}
+
 impl NvramAccessControl {
     fn from_u8(v: u8) -> Result<NvramAccessControl, u8> {
         match v {
@@ -253,6 +285,12 @@ pub enum InterruptMode {
     RisingEdges = 0b010,
     LowPulses = 0b011,
     HighPulses = 0b100,
+}
+
+impl Default for InterruptMode {
+    fn default() -> InterruptMode {
+        InterruptMode::None
+    }
 }
 
 impl InterruptMode {
@@ -278,6 +316,21 @@ pub struct SpiTransferSettings {
     pub delay_between_data: u16,
     pub bytes_per_tx: u16,
     pub spi_mode: SpiMode,
+}
+
+impl Default for SpiTransferSettings {
+    fn default() -> SpiTransferSettings {
+        SpiTransferSettings {
+            bit_rate: MAX_BIT_RATE,
+            cs_idle: ChipSelect::ALL_HIGH,
+            cs_active: ChipSelect::ALL_LOW,
+            delay_cs_to_data: 0,
+            delay_last_data_to_cs: 0,
+            delay_between_data: 0,
+            bytes_per_tx: 4,
+            spi_mode: SpiMode::Mode0,
+        }
+    }
 }
 
 impl SpiTransferSettings {

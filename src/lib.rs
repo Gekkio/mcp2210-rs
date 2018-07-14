@@ -59,6 +59,8 @@ pub enum Mcp2210Error {
 
 pub type Buffer = [u8; 64];
 
+pub const MAX_BIT_RATE: u32 = 12_000_000;
+
 pub struct Mcp2210 {
     file: File,
 }
