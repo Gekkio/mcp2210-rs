@@ -34,6 +34,8 @@ bitflags!(
         const CS6 = 0b001000000;
         const CS7 = 0b010000000;
         const CS8 = 0b100000000;
+        const ALL_HIGH = 0b111111111;
+        const ALL_LOW = 0b000000000;
     }
 );
 bitflags!(
@@ -47,6 +49,8 @@ bitflags!(
         const GP6 = 0b001000000;
         const GP7 = 0b010000000;
         const GP8 = 0b100000000;
+        const ALL_HIGH = 0b111111111;
+        const ALL_LOW = 0b000000000;
     }
 );
 bitflags!(
@@ -60,6 +64,8 @@ bitflags!(
         const GP6DIR = 0b001000000;
         const GP7DIR = 0b010000000;
         const GP8DIR = 0b100000000;
+        const ALL_INPUTS = 0b111111111;
+        const ALL_OUTPUTS = 0b000000000;
     }
 );
 
