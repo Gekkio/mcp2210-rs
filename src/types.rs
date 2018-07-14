@@ -151,21 +151,21 @@ impl UsbPowerOption {
 
 #[derive(Copy, Clone, Debug, PartialEq, Eq)]
 pub struct ChipSettings {
-    gp0_mode: PinMode,
-    gp1_mode: PinMode,
-    gp2_mode: PinMode,
-    gp3_mode: PinMode,
-    gp4_mode: PinMode,
-    gp5_mode: PinMode,
-    gp6_mode: PinMode,
-    gp7_mode: PinMode,
-    gp8_mode: PinMode,
-    default_gpio_value: GpioValue,
-    default_gpio_direction: GpioDirection,
-    remote_wakeup: bool,
-    interrupt_mode: InterruptMode,
-    bus_release: bool,
-    nvram_access_control: NvramAccessControl,
+    pub gp0_mode: PinMode,
+    pub gp1_mode: PinMode,
+    pub gp2_mode: PinMode,
+    pub gp3_mode: PinMode,
+    pub gp4_mode: PinMode,
+    pub gp5_mode: PinMode,
+    pub gp6_mode: PinMode,
+    pub gp7_mode: PinMode,
+    pub gp8_mode: PinMode,
+    pub default_gpio_value: GpioValue,
+    pub default_gpio_direction: GpioDirection,
+    pub remote_wakeup: bool,
+    pub interrupt_mode: InterruptMode,
+    pub bus_release: bool,
+    pub nvram_access_control: NvramAccessControl,
 }
 
 impl ChipSettings {
