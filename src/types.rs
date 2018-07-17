@@ -25,33 +25,33 @@ impl ChipStatus {
 
 bitflags!(
     pub struct ChipSelect: u16 {
-        const CS0 = 0b000000001;
-        const CS1 = 0b000000010;
-        const CS2 = 0b000000100;
-        const CS3 = 0b000001000;
-        const CS4 = 0b000010000;
-        const CS5 = 0b000100000;
-        const CS6 = 0b001000000;
-        const CS7 = 0b010000000;
-        const CS8 = 0b100000000;
-        const ALL_HIGH = 0b111111111;
-        const ALL_LOW = 0b000000000;
+        const CS0 = 0b0_0000_0001;
+        const CS1 = 0b0_0000_0010;
+        const CS2 = 0b0_0000_0100;
+        const CS3 = 0b0_0000_1000;
+        const CS4 = 0b0_0001_0000;
+        const CS5 = 0b0_0010_0000;
+        const CS6 = 0b0_0100_0000;
+        const CS7 = 0b0_1000_0000;
+        const CS8 = 0b1_0000_0000;
+        const ALL_HIGH = 0b1_1111_1111;
+        const ALL_LOW = 0b0_0000_0000;
     }
 );
 
 bitflags!(
     pub struct GpioValue: u16 {
-        const GP0 = 0b000000001;
-        const GP1 = 0b000000010;
-        const GP2 = 0b000000100;
-        const GP3 = 0b000001000;
-        const GP4 = 0b000010000;
-        const GP5 = 0b000100000;
-        const GP6 = 0b001000000;
-        const GP7 = 0b010000000;
-        const GP8 = 0b100000000;
-        const ALL_HIGH = 0b111111111;
-        const ALL_LOW = 0b000000000;
+        const GP0 = 0b0_0000_0001;
+        const GP1 = 0b0_0000_0010;
+        const GP2 = 0b0_0000_0100;
+        const GP3 = 0b0_0000_1000;
+        const GP4 = 0b0_0001_0000;
+        const GP5 = 0b0_0010_0000;
+        const GP6 = 0b0_0100_0000;
+        const GP7 = 0b0_1000_0000;
+        const GP8 = 0b1_0000_0000;
+        const ALL_HIGH = 0b1_1111_1111;
+        const ALL_LOW = 0b0_0000_0000;
     }
 );
 
@@ -63,17 +63,17 @@ impl Default for GpioValue {
 
 bitflags!(
     pub struct GpioDirection: u16 {
-        const GP0DIR = 0b000000001;
-        const GP1DIR = 0b000000010;
-        const GP2DIR = 0b000000100;
-        const GP3DIR = 0b000001000;
-        const GP4DIR = 0b000010000;
-        const GP5DIR = 0b000100000;
-        const GP6DIR = 0b001000000;
-        const GP7DIR = 0b010000000;
-        const GP8DIR = 0b100000000;
-        const ALL_INPUTS = 0b111111111;
-        const ALL_OUTPUTS = 0b000000000;
+        const GP0DIR = 0b0_0000_0001;
+        const GP1DIR = 0b0_0000_0010;
+        const GP2DIR = 0b0_0000_0100;
+        const GP3DIR = 0b0_0000_1000;
+        const GP4DIR = 0b0_0001_0000;
+        const GP5DIR = 0b0_0010_0000;
+        const GP6DIR = 0b0_0100_0000;
+        const GP7DIR = 0b0_1000_0000;
+        const GP8DIR = 0b1_0000_0000;
+        const ALL_INPUTS = 0b1_1111_1111;
+        const ALL_OUTPUTS = 0b0_0000_0000;
     }
 );
 
@@ -147,17 +147,17 @@ impl UsbParameters {
             pid: as_u16(buf[14], buf[15]),
             power_option: UsbPowerOption::from_u8(buf[29] >> 6)
                 .map_err(|v| format!("Invalid power_option value: {:02x}", v))?,
-            remote_wakeup_capable: buf[29] & 0b100000 != 0,
+            remote_wakeup_capable: buf[29] & 0b10_0000 != 0,
             requested_current: buf[30],
         })
     }
-    pub fn write_to_buffer(&self, buf: &mut Buffer) {
+    pub fn write_to_buffer(self, buf: &mut Buffer) {
         buf[4] = self.vid as u8;
         buf[5] = (self.vid >> 8) as u8;
         buf[6] = self.pid as u8;
         buf[7] = (self.pid >> 8) as u8;
         buf[8] = ((self.power_option as u8) << 6) | (if self.remote_wakeup_capable {
-            0b100000
+            0b10_0000
         } else {
             0
         });
