@@ -26,3 +26,28 @@ pub fn encode_utf16_to_buffer(s: &str, buf: &mut [u8]) {
         idx += 2;
     }
 }
+
+#[test]
+fn test_as_u16() {
+    assert_eq!(as_u16(0xaa, 0x55), 0x55aa);
+}
+
+#[test]
+fn test_as_u32() {
+    assert_eq!(as_u32(0x11, 0x22, 0x33, 0x44), 0x44332211);
+}
+
+#[test]
+fn test_encode_utf16_to_buffer() {
+    let mut buf = [0; 14];
+    encode_utf16_to_buffer("보라색 고양이", &mut buf);
+    assert_eq!(buf, [
+               0xf4, 0xbc,
+               0x7c, 0xb7,
+               0xc9, 0xc0,
+               0x20, 0x00,
+               0xe0, 0xac,
+               0x91, 0xc5,
+               0x74, 0xc7
+    ]);
+}

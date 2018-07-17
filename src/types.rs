@@ -12,7 +12,7 @@ pub struct ChipStatus {
 impl ChipStatus {
     pub fn from_buffer(buf: &Buffer) -> Result<ChipStatus, String> {
         Ok(ChipStatus {
-            is_bus_release_pending: as_bool(buf[2])
+            is_bus_release_pending: !as_bool(buf[2])
                 .map_err(|v| format!("Invalid is_bus_release_pending value: {:02x}", v))?,
             bus_owner: BusOwner::from_u8(buf[3])
                 .map_err(|v| format!("Invalid bus_owner value: {:02x}", v))?,

@@ -292,3 +292,57 @@ where
     T: CommandResponse,
 {
 }
+
+#[cfg(test)]
+struct TestTx {
+    cmd: Buffer,
+    res: Buffer,
+}
+
+#[cfg(test)]
+impl TestTx {
+    fn new(res: &[u8]) -> TestTx {
+        assert!(res.len() <= 64);
+        let mut tx = TestTx {
+            cmd: [0; 64],
+            res: [0; 64],
+        };
+        tx.res[..res.len()].copy_from_slice(res);
+        tx
+    }
+}
+
+#[cfg(test)]
+impl CommandResponse for TestTx {
+    fn command_response(&mut self, cmd: &Buffer, res: &mut Buffer) -> io::Result<()> {
+        self.cmd.copy_from_slice(cmd);
+        res.copy_from_slice(&self.res);
+        Ok(())
+    }
+}
+
+#[test]
+fn test_get_chip_status() {
+    let mut tx = TestTx::new(&[0x10, 0x00, 0x01, 0x02, 42, 0x01]);
+    let status = tx.get_chip_status().unwrap();
+    let mut expected_cmd = [0; 64];
+    expected_cmd[0] = 0x10;
+    assert_eq!(tx.cmd.as_ref(), expected_cmd.as_ref());
+    assert_eq!(status.is_bus_release_pending, false);
+    assert_eq!(status.bus_owner, BusOwner::ExternalMaster);
+    assert_eq!(status.password_attempt_count, 42);
+    assert_eq!(status.is_password_guessed, true);
+}
+
+#[test]
+fn test_cancel_spi_transfer() {
+    let mut tx = TestTx::new(&[0x11, 0x00, 0x00, 0x01, 79, 0x00]);
+    let status = tx.cancel_spi_transfer().unwrap();
+    let mut expected_cmd = [0; 64];
+    expected_cmd[0] = 0x11;
+    assert_eq!(tx.cmd.as_ref(), expected_cmd.as_ref());
+    assert_eq!(status.is_bus_release_pending, true);
+    assert_eq!(status.bus_owner, BusOwner::UsbBridge);
+    assert_eq!(status.password_attempt_count, 79);
+    assert_eq!(status.is_password_guessed, false);
+}
