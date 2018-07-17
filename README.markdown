@@ -1,5 +1,9 @@
 # mcp2210-rs: Microchip MCP2210 library using hiddraw (Linux-only)
 
+[![Build Status](https://travis-ci.com/Gekkio/mcp2210-rs.svg?branch=master)](https://travis-ci.com/Gekkio/mcp2210-rs)
+[![Latest release on crates.io](https://meritbadge.herokuapp.com/mcp2210)](https://crates.io/crates/mcp2210)
+[![Documentation on docs.rs](https://docs.rs/mcp2210/badge.svg)](https://docs.rs/mcp2210)
+
 ```rust
 let mut mcp = Mcp2210::open("/dev/hidraw0")?;
 mcp.set_spi_transfer_settings(&SpiTransferSettings {
