@@ -13,7 +13,8 @@ fn main() {
         ..Default::default()
     }).expect("Failed to set settings");
     let mut buf = Vec::new();
-    mcp.spi_transfer_to_end(&[0xaa, 0x55], &mut buf).expect("SPI transfer failed");
+    mcp.spi_transfer_to_end(&[0xaa, 0x55], &mut buf)
+        .expect("SPI transfer failed");
     assert_eq!(buf.len(), 2);
     println!("0x{:02x} 0x{:02x}", buf[0], buf[1]); // prints 0xaa 0x55
 }
