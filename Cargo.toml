@@ -2,9 +2,16 @@
 name = "mcp2210"
 version = "0.0.1"
 authors = ["Joonas Javanainen <joonas.javanainen@gmail.com>"]
+description = "Microchip MCP2210 communication library"
 homepage = "https://github.com/Gekkio/mcp2210-rs"
 repository = "https://github.com/Gekkio/mcp2210-rs"
 license = "MIT/Apache-2.0"
+keywords = ["MCP2210", "SPI", "serial", "communication"]
+categories = ["hardware-support"]
+readme = "README.markdown"
+
+[badges]
+travis-ci = { repository = "Gekkio/mcp2210-rs" }
 
 [dependencies]
 bitflags = "1.0"
