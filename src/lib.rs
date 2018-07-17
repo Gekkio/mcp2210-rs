@@ -3,7 +3,6 @@ extern crate bitflags;
 #[macro_use]
 extern crate failure;
 extern crate libudev;
-extern crate nix;
 
 mod cmds;
 mod types;
