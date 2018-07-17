@@ -8,7 +8,10 @@ rust:
   - 1.20.0
 os:
   - linux
-  - osx
+addons:
+  apt:
+    packages:
+    - libudev-dev
 cache: cargo
 matrix:
   allow_failures:
