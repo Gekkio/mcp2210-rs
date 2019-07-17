@@ -37,7 +37,7 @@ pub enum Mcp2210Error {
 
 impl fmt::Display for Mcp2210Error {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        use Mcp2210Error::*;
+        use crate::Mcp2210Error::*;
         match self {
             Io(err) => fmt::Display::fmt(err, f),
             CommandCode { expected, actual } => write!(
@@ -76,7 +76,7 @@ impl fmt::Display for Mcp2210Error {
 
 impl Error for Mcp2210Error {
     fn source(&self) -> Option<&(dyn Error + 'static)> {
-        use Mcp2210Error::*;
+        use crate::Mcp2210Error::*;
         match self {
             Io(err) => Some(err),
             _ => None,
