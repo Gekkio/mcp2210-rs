@@ -1,5 +1,9 @@
 # mcp2210-rs: Microchip MCP2210 library using hiddraw (Linux-only)
 
+Minimum Rust version: 1.31
+
+[MCP2210 datasheet](http://ww1.microchip.com/downloads/en/devicedoc/22288a.pdf)
+
 [![Build Status](https://travis-ci.com/Gekkio/mcp2210-rs.svg?branch=master)](https://travis-ci.com/Gekkio/mcp2210-rs)
 [![Latest release on crates.io](https://meritbadge.herokuapp.com/mcp2210)](https://crates.io/crates/mcp2210)
 [![Documentation on docs.rs](https://docs.rs/mcp2210/badge.svg)](https://docs.rs/mcp2210)
