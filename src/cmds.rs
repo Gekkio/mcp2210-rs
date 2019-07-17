@@ -1,8 +1,8 @@
 use super::{Buffer, Mcp2210Error};
-use std::cmp::min;
-use std::io::{self, Read, Write};
 use crate::types::*;
 use crate::utils::{as_u16, encode_utf16_to_buffer};
+use std::cmp::min;
+use std::io::{self, Read, Write};
 
 pub trait CommandResponse {
     fn command_response(&mut self, cmd: &Buffer, res: &mut Buffer) -> io::Result<()>;
@@ -287,11 +287,7 @@ pub trait Commands: CommandResponse {
     }
 }
 
-impl<T> Commands for T
-where
-    T: CommandResponse,
-{
-}
+impl<T> Commands for T where T: CommandResponse {}
 
 #[cfg(test)]
 struct TestTx {

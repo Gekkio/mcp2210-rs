@@ -1,7 +1,7 @@
 use bitflags::bitflags;
 
-use crate::{Buffer, MAX_BIT_RATE};
 use crate::utils::{as_bool, as_u16, as_u32};
+use crate::{Buffer, MAX_BIT_RATE};
 
 #[derive(Copy, Clone, Debug, PartialEq, Eq)]
 pub struct ChipStatus {
@@ -158,11 +158,12 @@ impl UsbParameters {
         buf[5] = (self.vid >> 8) as u8;
         buf[6] = self.pid as u8;
         buf[7] = (self.pid >> 8) as u8;
-        buf[8] = ((self.power_option as u8) << 6) | (if self.remote_wakeup_capable {
-            0b10_0000
-        } else {
-            0
-        });
+        buf[8] = ((self.power_option as u8) << 6)
+            | (if self.remote_wakeup_capable {
+                0b10_0000
+            } else {
+                0
+            });
         buf[9] = self.requested_current;
     }
 }

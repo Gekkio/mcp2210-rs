@@ -5,7 +5,7 @@ mod utils;
 pub use crate::cmds::*;
 pub use crate::types::*;
 
-use failure::{Fail};
+use failure::Fail;
 use libudev::Device;
 use std::cmp::min;
 use std::ffi::OsStr;
@@ -17,16 +17,23 @@ use std::path::{Path, PathBuf};
 pub enum Mcp2210Error {
     #[fail(display = "IO error ({})", _0)]
     Io(#[cause] io::Error),
-    #[fail(display = "Invalid command code (expected {:2x}, got {:2x})", expected, actual)]
+    #[fail(
+        display = "Invalid command code (expected {:2x}, got {:2x})",
+        expected, actual
+    )]
     CommandCode { expected: u8, actual: u8 },
-    #[fail(display = "Invalid sub-command code (expected {:2x}, got {:2x})", expected, actual)]
+    #[fail(
+        display = "Invalid sub-command code (expected {:2x}, got {:2x})",
+        expected, actual
+    )]
     SubCommandCode { expected: u8, actual: u8 },
     #[fail(display = "Invalid response ({})", _0)]
     InvalidResponse(String),
     #[fail(display = "Unknown error code {:2x}", _0)]
     UnknownErrorCode(u8),
     #[fail(
-        display = "String is too long (expected at most 29 UTF-16 encoded u16 values, got {})", _0
+        display = "String is too long (expected at most 29 UTF-16 encoded u16 values, got {})",
+        _0
     )]
     StringSize(usize),
     #[fail(display = "Payload is too big (expected at most 60 bytes, got {})", _0)]
