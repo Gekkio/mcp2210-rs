@@ -5,57 +5,83 @@ mod utils;
 pub use crate::cmds::*;
 pub use crate::types::*;
 
-use failure::Fail;
 use libudev::Device;
 use std::cmp::min;
+use std::error::Error;
 use std::ffi::OsStr;
+use std::fmt;
 use std::fs::{File, OpenOptions};
 use std::io;
 use std::path::{Path, PathBuf};
 
-#[derive(Fail, Debug)]
+#[derive(Debug)]
 pub enum Mcp2210Error {
-    #[fail(display = "IO error ({})", _0)]
-    Io(#[cause] io::Error),
-    #[fail(
-        display = "Invalid command code (expected {:2x}, got {:2x})",
-        expected, actual
-    )]
+    Io(io::Error),
     CommandCode { expected: u8, actual: u8 },
-    #[fail(
-        display = "Invalid sub-command code (expected {:2x}, got {:2x})",
-        expected, actual
-    )]
     SubCommandCode { expected: u8, actual: u8 },
-    #[fail(display = "Invalid response ({})", _0)]
     InvalidResponse(String),
-    #[fail(display = "Unknown error code {:2x}", _0)]
     UnknownErrorCode(u8),
-    #[fail(
-        display = "String is too long (expected at most 29 UTF-16 encoded u16 values, got {})",
-        _0
-    )]
     StringSize(usize),
-    #[fail(display = "Payload is too big (expected at most 60 bytes, got {})", _0)]
     PayloadSize(usize),
-    #[fail(display = "Unexpected SPI transfer status")]
     TransferStatus(SpiTransferStatus),
 
     // MCP2210 error codes
-    #[fail(display = "EEPROM write failure")]
-    EepromWrite, // 0xFA
-    #[fail(display = "Access denied")]
-    AccessDenied, // 0xFB
-    #[fail(display = "Access rejected")]
-    AccessRejected, // 0xFC
-    #[fail(display = "Access denied, retrying allowed")]
-    AccessDeniedRetry, // 0xFD
-    #[fail(display = "SPI bus unavailable")]
-    Unavailable, // 0xF7
-    #[fail(display = "SPI bus busy")]
-    Busy, // 0xF8
-    #[fail(display = "Unknown command code {:2x}", _0)]
+    EepromWrite,            // 0xFA
+    AccessDenied,           // 0xFB
+    AccessRejected,         // 0xFC
+    AccessDeniedRetry,      // 0xFD
+    Unavailable,            // 0xF7
+    Busy,                   // 0xF8
     UnknownCommandCode(u8), // 0xF9
+}
+
+impl fmt::Display for Mcp2210Error {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        use Mcp2210Error::*;
+        match self {
+            Io(err) => fmt::Display::fmt(err, f),
+            CommandCode { expected, actual } => write!(
+                f,
+                "Invalid command code (expected {:2x}, got {:2x})",
+                expected, actual
+            ),
+            SubCommandCode { expected, actual } => write!(
+                f,
+                "Invalid sub-command code (expected {:2x}, got {:2x})",
+                expected, actual
+            ),
+            InvalidResponse(response) => write!(f, "Invalid response ({})", response),
+            UnknownErrorCode(code) => write!(f, "Unknown error code {:2x}", code),
+            StringSize(size) => write!(
+                f,
+                "String is too long (expected at most 29 UTF-16 encoded u16 values, got {})",
+                size
+            ),
+            PayloadSize(size) => write!(
+                f,
+                "Payload is too big (expected at most 60 bytes, got {})",
+                size
+            ),
+            TransferStatus(status) => write!(f, "Unexpected SPI transfer status {:?}", status),
+            EepromWrite => write!(f, "EEPROM write failure"),
+            AccessDenied => write!(f, "Access denied"),
+            AccessRejected => write!(f, "Access rejected"),
+            AccessDeniedRetry => write!(f, "Access denied, retrying allowed"),
+            Unavailable => write!(f, "SPI bus unavailable"),
+            Busy => write!(f, "SPI bus busy"),
+            UnknownCommandCode(code) => write!(f, "Unknown command code {:2x}", code),
+        }
+    }
+}
+
+impl Error for Mcp2210Error {
+    fn source(&self) -> Option<&(dyn Error + 'static)> {
+        use Mcp2210Error::*;
+        match self {
+            Io(err) => Some(err),
+            _ => None,
+        }
+    }
 }
 
 pub type Buffer = [u8; 64];

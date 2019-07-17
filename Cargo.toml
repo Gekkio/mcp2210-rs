@@ -16,5 +16,4 @@ travis-ci = { repository = "Gekkio/mcp2210-rs" }
 
 [dependencies]
 bitflags = "1.0"
-failure = "0.1"
 libudev = "0.2"
