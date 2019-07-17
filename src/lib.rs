@@ -1,16 +1,11 @@
-#[macro_use]
-extern crate bitflags;
-#[macro_use]
-extern crate failure;
-extern crate libudev;
-
 mod cmds;
 mod types;
 mod utils;
 
-pub use cmds::*;
-pub use types::*;
+pub use crate::cmds::*;
+pub use crate::types::*;
 
+use failure::{Fail};
 use libudev::Device;
 use std::cmp::min;
 use std::ffi::OsStr;

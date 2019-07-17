@@ -1,5 +1,7 @@
-use super::{Buffer, MAX_BIT_RATE};
-use utils::{as_bool, as_u16, as_u32};
+use bitflags::bitflags;
+
+use crate::{Buffer, MAX_BIT_RATE};
+use crate::utils::{as_bool, as_u16, as_u32};
 
 #[derive(Copy, Clone, Debug, PartialEq, Eq)]
 pub struct ChipStatus {

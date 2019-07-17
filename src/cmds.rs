@@ -1,8 +1,8 @@
 use super::{Buffer, Mcp2210Error};
 use std::cmp::min;
 use std::io::{self, Read, Write};
-use types::*;
-use utils::{as_u16, encode_utf16_to_buffer};
+use crate::types::*;
+use crate::utils::{as_u16, encode_utf16_to_buffer};
 
 pub trait CommandResponse {
     fn command_response(&mut self, cmd: &Buffer, res: &mut Buffer) -> io::Result<()>;
