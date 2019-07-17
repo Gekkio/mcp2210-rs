@@ -1,6 +1,6 @@
 [package]
 name = "mcp2210"
-version = "0.0.2-pre"
+version = "0.1.0"
 authors = ["Joonas Javanainen <joonas.javanainen@gmail.com>"]
 edition = "2018"
 description = "Microchip MCP2210 communication library"
