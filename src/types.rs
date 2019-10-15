@@ -1,4 +1,5 @@
 use bitflags::bitflags;
+use std::fmt;
 
 use crate::utils::{as_bool, as_u16, as_u32};
 use crate::{Buffer, MAX_BIT_RATE};
@@ -121,7 +122,7 @@ impl BusOwner {
     }
 }
 
-#[derive(Copy, Clone, Debug, PartialEq, Eq)]
+#[derive(Copy, Clone, PartialEq, Eq)]
 pub struct UsbParameters {
     vid: u16,
     pid: u16,
@@ -165,6 +166,18 @@ impl UsbParameters {
                 0
             });
         buf[9] = self.requested_current;
+    }
+}
+
+impl fmt::Debug for UsbParameters {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        f.debug_struct("UsbParameters")
+            .field("vid", &format_args!("{:#06x}", self.vid))
+            .field("pid", &format_args!("{:#06x}", self.pid))
+            .field("power_option", &self.power_option)
+            .field("remote_wakeup_capable", &self.remote_wakeup_capable)
+            .field("requested_current", &format_args!("{} mA", self.requested_current * 2))
+            .finish()
     }
 }
 
