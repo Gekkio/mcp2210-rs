@@ -40,6 +40,8 @@ jobs:
         run: cargo fmt --all -- --check
       - name: Run clippy
         run: cargo clippy --all
+      - name: REUSE Compliance Check
+        uses: fsfe/reuse-action@v1
 
   compile_and_test:
     name: Compile and run tests
