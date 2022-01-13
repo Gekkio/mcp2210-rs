@@ -2,7 +2,7 @@
 name = "mcp2210"
 version = "0.2.0-pre"
 authors = ["Joonas Javanainen <joonas.javanainen@gmail.com>"]
-edition = "2018"
+edition = "2021"
 description = "Microchip MCP2210 communication library"
 homepage = "https://github.com/Gekkio/mcp2210-rs"
 repository = "https://github.com/Gekkio/mcp2210-rs"
