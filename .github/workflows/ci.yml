@@ -66,6 +66,12 @@ jobs:
           profile: minimal
           toolchain: ${{ matrix.rust }}
           override: true
+      - name: Update Ubuntu package lists
+        run: sudo apt update
+        if: runner.os == 'Linux'
+      - name: Install Ubuntu packages
+        run: sudo apt install libudev-dev
+        if: runner.os == 'Linux'
       - name: Cache dependencies
         uses: Swatinem/rust-cache@3bb3a9a087029c7bc392586cdc88cb6f66b9c6ef
       - name: Compile
