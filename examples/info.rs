@@ -1,3 +1,7 @@
+// SPDX-FileCopyrightText: 2018-2022 Joonas Javanainen <joonas.javanainen@gmail.com>
+//
+// SPDX-License-Identifier: MIT OR Apache-2.0
+
 //! This example reads out all information and state from the MCP2210 and writes it to the console.
 
 extern crate mcp2210;

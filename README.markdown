@@ -1,3 +1,9 @@
+<!--
+SPDX-FileCopyrightText: 2018-2022 Joonas Javanainen <joonas.javanainen@gmail.com>
+
+SPDX-License-Identifier: CC0-1.0
+-->
+
 # mcp2210-rs: Microchip MCP2210 library using hiddraw (Linux-only)
 
 Minimum Rust version: 1.31

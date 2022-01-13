@@ -1,3 +1,7 @@
+# SPDX-FileCopyrightText: 2018-2022 Joonas Javanainen <joonas.javanainen@gmail.com>
+#
+# SPDX-License-Identifier: MIT OR Apache-2.0
+
 [package]
 name = "mcp2210"
 version = "0.2.0-pre"
@@ -6,7 +10,7 @@ edition = "2021"
 description = "Microchip MCP2210 communication library"
 homepage = "https://github.com/Gekkio/mcp2210-rs"
 repository = "https://github.com/Gekkio/mcp2210-rs"
-license = "MIT/Apache-2.0"
+license = "MIT OR Apache-2.0"
 keywords = ["MCP2210", "SPI", "serial", "communication"]
 categories = ["hardware-support"]
 readme = "README.markdown"

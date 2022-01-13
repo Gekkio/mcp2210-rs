@@ -1,3 +1,7 @@
+// SPDX-FileCopyrightText: 2018-2022 Joonas Javanainen <joonas.javanainen@gmail.com>
+//
+// SPDX-License-Identifier: MIT OR Apache-2.0
+
 extern crate mcp2210;
 
 use mcp2210::*;
