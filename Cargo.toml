@@ -15,9 +15,6 @@ keywords = ["MCP2210", "SPI", "serial", "communication"]
 categories = ["hardware-support"]
 readme = "README.markdown"
 
-[badges]
-travis-ci = { repository = "Gekkio/mcp2210-rs" }
-
 [dependencies]
 bitflags = "1.0"
 libudev = "0.2"
