@@ -176,7 +176,10 @@ impl fmt::Debug for UsbParameters {
             .field("pid", &format_args!("{:#06x}", self.pid))
             .field("power_option", &self.power_option)
             .field("remote_wakeup_capable", &self.remote_wakeup_capable)
-            .field("requested_current", &format_args!("{} mA", self.requested_current * 2))
+            .field(
+                "requested_current",
+                &format_args!("{} mA", self.requested_current * 2),
+            )
             .finish()
     }
 }
