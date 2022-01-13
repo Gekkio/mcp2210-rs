@@ -8,7 +8,7 @@ pub trait CommandResponse {
     fn command_response(&mut self, cmd: &Buffer, res: &mut Buffer) -> io::Result<()>;
     fn do_command<F>(&mut self, cmd_code: u8, res: &mut Buffer, f: F) -> Result<(), Mcp2210Error>
     where
-        F: FnOnce(&mut Buffer) -> (),
+        F: FnOnce(&mut Buffer),
     {
         let mut cmd: Buffer = [0; 64];
         cmd[0] = cmd_code;
@@ -40,7 +40,7 @@ pub trait CommandResponse {
         f: F,
     ) -> Result<(), Mcp2210Error>
     where
-        F: FnOnce(&mut Buffer) -> (),
+        F: FnOnce(&mut Buffer),
     {
         self.do_command(cmd_code, res, |cmd| {
             cmd[1] = sub_cmd_code;
