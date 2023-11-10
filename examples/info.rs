@@ -10,8 +10,8 @@ use mcp2210::*;
 
 fn main() {
     let devices = mcp2210::scan_devices().expect("Failed to scan devices");
-    let device = devices.iter().next().expect("No devices found");
-    let mut mcp = Mcp2210::open(&device).expect("Failed to open device");
+    let device = devices.first().expect("No devices found");
+    let mut mcp = Mcp2210::open_device(&device).expect("Failed to open device");
     println!("Current Chip Status");
     println!("===================");
     println!(
