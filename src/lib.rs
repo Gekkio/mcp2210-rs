@@ -9,18 +9,14 @@ mod utils;
 pub use crate::cmds::*;
 pub use crate::types::*;
 
-use libudev::Device;
+use hidapi::{DeviceInfo, HidApi, HidDevice, HidError, HidResult};
 use std::cmp::min;
 use std::error::Error;
-use std::ffi::OsStr;
 use std::fmt;
-use std::fs::{File, OpenOptions};
-use std::io;
-use std::path::{Path, PathBuf};
 
 #[derive(Debug)]
 pub enum Mcp2210Error {
-    Io(io::Error),
+    Hid(HidError),
     CommandCode { expected: u8, actual: u8 },
     SubCommandCode { expected: u8, actual: u8 },
     InvalidResponse(String),
@@ -43,7 +39,7 @@ impl fmt::Display for Mcp2210Error {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         use crate::Mcp2210Error::*;
         match self {
-            Io(err) => fmt::Display::fmt(err, f),
+            Hid(err) => fmt::Display::fmt(err, f),
             CommandCode { expected, actual } => write!(
                 f,
                 "Invalid command code (expected {:2x}, got {:2x})",
@@ -82,7 +78,7 @@ impl Error for Mcp2210Error {
     fn source(&self) -> Option<&(dyn Error + 'static)> {
         use crate::Mcp2210Error::*;
         match self {
-            Io(err) => Some(err),
+            Hid(err) => Some(err),
             _ => None,
         }
     }
@@ -93,23 +89,26 @@ pub type Buffer = [u8; 64];
 pub const MAX_BIT_RATE: u32 = 12_000_000;
 
 pub struct Mcp2210 {
-    file: File,
+    device: HidDevice,
 }
 
 impl CommandResponse for Mcp2210 {
-    fn command_response(&mut self, cmd: &Buffer, res: &mut Buffer) -> io::Result<()> {
-        self.file.command_response(cmd, res)
+    fn command_response(&mut self, cmd: &Buffer, res: &mut Buffer) -> HidResult<()> {
+        // TODO: What do write() and read() return when they succeed? Is it important?
+        self.device
+            .write(&[[0x00].to_vec(), cmd.to_vec()].concat())?;
+        self.device.read(res)?;
+        Ok(())
     }
 }
 
 impl Mcp2210 {
-    pub fn open<P: AsRef<Path>>(path: P) -> Result<Mcp2210, Mcp2210Error> {
-        let file = OpenOptions::new()
-            .read(true)
-            .write(true)
-            .open(path)
-            .map_err(Mcp2210Error::Io)?;
-        Ok(Mcp2210 { file })
+    pub fn open(device_info: &DeviceInfo) -> Result<Mcp2210, Mcp2210Error> {
+        let context = HidApi::new().map_err(Mcp2210Error::Hid)?;
+        let device = device_info
+            .open_device(&context)
+            .map_err(Mcp2210Error::Hid)?;
+        Ok(Mcp2210 { device })
     }
     pub fn spi_transfer_to_end(
         &mut self,
@@ -143,35 +142,21 @@ impl Mcp2210 {
     }
 }
 
-pub fn scan_devices() -> io::Result<Vec<PathBuf>> {
-    scan_devices_with_filter(|d| {
-        let vendor_id = d.property_value("ID_VENDOR_ID");
-        let model_id = d.property_value("ID_MODEL_ID");
-        vendor_id == Some(OsStr::new("04d8")) && model_id == Some(OsStr::new("00de"))
-    })
+pub fn scan_devices() -> Result<Vec<DeviceInfo>, Mcp2210Error> {
+    scan_devices_with_filter(|d| d.vendor_id() == 0x04d8 && d.product_id() == 0x00de)
 }
 
-pub fn scan_devices_with_filter<F: FnMut(Device) -> bool>(mut f: F) -> io::Result<Vec<PathBuf>> {
+pub fn scan_devices_with_filter<F: FnMut(&DeviceInfo) -> bool>(
+    mut f: F,
+) -> Result<Vec<DeviceInfo>, Mcp2210Error> {
     let mut results = Vec::new();
-    if let Ok(context) = libudev::Context::new() {
-        let mut enumerator = libudev::Enumerator::new(&context)?;
-        enumerator.match_subsystem("hidraw")?;
-        let devices = enumerator.scan_devices()?;
-        for d in devices {
-            if let Some(devnode) = d.devnode() {
-                if let Some(d) = d.parent() {
-                    if let Some(d) = d.parent() {
-                        if let Some(d) = d.parent() {
-                            if d.property_value("ID_BUS") != Some(OsStr::new("usb")) {
-                                continue;
-                            }
-                            if f(d) {
-                                results.push(devnode.to_owned());
-                            }
-                        }
-                    }
-                }
-            }
+    // TODO: HidApi::new() does some initialization that may not be nessasary in some circumstances.
+    // It could panic.
+    let context = HidApi::new().map_err(Mcp2210Error::Hid)?;
+    let devices = context.device_list();
+    for d in devices {
+        if f(d) {
+            results.push(d.to_owned());
         }
     }
     Ok(results)
