@@ -103,6 +103,11 @@ impl CommandResponse for Mcp2210 {
 }
 
 impl Mcp2210 {
+    /// # Panics
+    ///
+    /// Under the hood this calls the `hidapi::HidApi::new()` function which panics if hidapi is already
+    /// initialized in "without enumerate" mode (i.e. if `HidApi::new_without_enumerate()` has been called before).
+    /// This would also cause a later call to `HidApi::new_without_enumberate()` to panic.
     pub fn open(device_info: &DeviceInfo) -> Result<Mcp2210, Mcp2210Error> {
         let context = HidApi::new().map_err(Mcp2210Error::Hid)?;
         let device = device_info
@@ -142,16 +147,28 @@ impl Mcp2210 {
     }
 }
 
+/// Scans devices for the default vendor ID and product ID that the MCP2210 comes with
+///
+/// # Panics
+///
+/// Under the hood this calls the `hidapi::HidApi::new()` function which panics if hidapi is already
+/// initialized in "without enumerate" mode (i.e. if `HidApi::new_without_enumerate()` has been called before).
+/// This would also cause a later call to `HidApi::new_without_enumberate()` to panic.
 pub fn scan_devices() -> Result<Vec<DeviceInfo>, Mcp2210Error> {
     scan_devices_with_filter(|d| d.vendor_id() == 0x04d8 && d.product_id() == 0x00de)
 }
 
+/// Scans devices with a provided filter
+///
+/// # Panics
+///
+/// Under the hood this calls the `hidapi::HidApi::new()` function which panics if hidapi is already
+/// initialized in "without enumerate" mode (i.e. if `HidApi::new_without_enumerate()` has been called before).
+/// This would also cause a later call to `HidApi::new_without_enumberate()` to panic.
 pub fn scan_devices_with_filter<F: FnMut(&DeviceInfo) -> bool>(
     mut f: F,
 ) -> Result<Vec<DeviceInfo>, Mcp2210Error> {
     let mut results = Vec::new();
-    // TODO: HidApi::new() does some initialization that may not be nessasary in some circumstances.
-    // It could panic.
     let context = HidApi::new().map_err(Mcp2210Error::Hid)?;
     let devices = context.device_list();
     for d in devices {
