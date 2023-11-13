@@ -12,11 +12,15 @@ pub use crate::types::*;
 use hidapi::{DeviceInfo, HidApi, HidDevice, HidError, HidResult};
 use std::cmp::min;
 use std::error::Error;
+use std::ffi::{CString, NulError};
 use std::fmt;
+use std::path::{Path, PathBuf};
 
 #[derive(Debug)]
 pub enum Mcp2210Error {
     Hid(HidError),
+    NonUtf8Path(PathBuf),
+    NulCharInPath(NulError),
     CommandCode { expected: u8, actual: u8 },
     SubCommandCode { expected: u8, actual: u8 },
     InvalidResponse(String),
@@ -40,6 +44,8 @@ impl fmt::Display for Mcp2210Error {
         use crate::Mcp2210Error::*;
         match self {
             Hid(err) => fmt::Display::fmt(err, f),
+            NonUtf8Path(path) => write!(f, "Non UTF-8 path: {:?}", path),
+            NulCharInPath(err) => write!(f, "Nul character found in path: {}", err),
             CommandCode { expected, actual } => write!(
                 f,
                 "Invalid command code (expected {:2x}, got {:2x})",
@@ -103,18 +109,74 @@ impl CommandResponse for Mcp2210 {
 }
 
 impl Mcp2210 {
+    /// Opens a MCP2210 by &&PathBuf or &&DeviceInfo
+    ///
+    /// # Deprecated
+    ///
+    /// Use `open_path()` or `open_device()` instead.
+    ///
     /// # Panics
     ///
     /// Under the hood this calls the `hidapi::HidApi::new()` function which panics if hidapi is already
     /// initialized in "without enumerate" mode (i.e. if `HidApi::new_without_enumerate()` has been called before).
     /// This would also cause a later call to `HidApi::new_without_enumberate()` to panic.
-    pub fn open(device_info: &DeviceInfo) -> Result<Mcp2210, Mcp2210Error> {
+    #[deprecated]
+    pub fn open<D: Mcp2210Identity>(device_id: D) -> Result<Mcp2210, Mcp2210Error> {
+        device_id.open()
+    }
+
+    /// Opens a MCP2210 by path
+    ///
+    /// # Panics
+    ///
+    /// Under the hood this calls the `hidapi::HidApi::new()` function which panics if hidapi is already
+    /// initialized in "without enumerate" mode (i.e. if `HidApi::new_without_enumerate()` has been called before).
+    /// This would also cause a later call to `HidApi::new_without_enumberate()` to panic.
+    pub fn open_path<P: AsRef<Path>>(path: P) -> Result<Mcp2210, Mcp2210Error> {
+        // Path to CString
+        let path_cstr = CString::new(
+            path.as_ref()
+                .to_str()
+                .ok_or_else(|| Mcp2210Error::NonUtf8Path(path.as_ref().to_owned()))?,
+        )
+        .map_err(Mcp2210Error::NulCharInPath)?;
+
+        let context = HidApi::new().map_err(Mcp2210Error::Hid)?;
+        let device = context.open_path(&path_cstr).map_err(Mcp2210Error::Hid)?;
+        Ok(Mcp2210 { device })
+    }
+
+    /// Opens a MCP2210 using a Vendor ID (VID), Product ID (PID) and a serial number.
+    ///
+    /// # Panics
+    ///
+    /// Under the hood this calls the `hidapi::HidApi::new()` function which panics if hidapi is already
+    /// initialized in "without enumerate" mode (i.e. if `HidApi::new_without_enumerate()` has been called before).
+    /// This would also cause a later call to `HidApi::new_without_enumberate()` to panic.
+    pub fn open_serial(vid: u16, pid: u16, sn: &str) -> Result<Mcp2210, Mcp2210Error> {
+        let context = HidApi::new().map_err(Mcp2210Error::Hid)?;
+        let device = context
+            .open_serial(vid, pid, sn)
+            .map_err(Mcp2210Error::Hid)?;
+        Ok(Mcp2210 { device })
+    }
+
+    /// Opens a MCP2210 using a &DeviceInfo whice you may optain with the `scan_devices_with_filter()` or
+    /// `scan_devices()` functions.
+    ///
+    /// # Panics
+    ///
+    /// Under the hood this calls the `hidapi::HidApi::new()` function which panics if hidapi is already
+    /// initialized in "without enumerate" mode (i.e. if `HidApi::new_without_enumerate()` has been called before).
+    /// This would also cause a later call to `HidApi::new_without_enumberate()` to panic.
+    pub fn open_device(device_info: &DeviceInfo) -> Result<Mcp2210, Mcp2210Error> {
         let context = HidApi::new().map_err(Mcp2210Error::Hid)?;
         let device = device_info
             .open_device(&context)
             .map_err(Mcp2210Error::Hid)?;
         Ok(Mcp2210 { device })
     }
+
     pub fn spi_transfer_to_end(
         &mut self,
         mut data: &[u8],
@@ -144,6 +206,22 @@ impl Mcp2210 {
             }
         }
         Ok(())
+    }
+}
+
+pub trait Mcp2210Identity {
+    fn open(self) -> Result<Mcp2210, Mcp2210Error>;
+}
+
+impl Mcp2210Identity for &&PathBuf {
+    fn open(self) -> Result<Mcp2210, Mcp2210Error> {
+        Mcp2210::open_path(self)
+    }
+}
+
+impl Mcp2210Identity for &&DeviceInfo {
+    fn open(self) -> Result<Mcp2210, Mcp2210Error> {
+        Mcp2210::open_device(self)
     }
 }
 
