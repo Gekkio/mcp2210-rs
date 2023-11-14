@@ -109,22 +109,6 @@ impl CommandResponse for Mcp2210 {
 }
 
 impl Mcp2210 {
-    /// Opens a MCP2210 by &&PathBuf or &&DeviceInfo
-    ///
-    /// # Deprecated
-    ///
-    /// Use `open_path()` or `open_device()` instead.
-    ///
-    /// # Panics
-    ///
-    /// Under the hood this calls the `hidapi::HidApi::new()` function which panics if hidapi is already
-    /// initialized in "without enumerate" mode (i.e. if `HidApi::new_without_enumerate()` has been called before).
-    /// This would also cause a later call to `HidApi::new_without_enumberate()` to panic.
-    #[deprecated]
-    pub fn open<D: Mcp2210Identity>(device_id: D) -> Result<Mcp2210, Mcp2210Error> {
-        device_id.open()
-    }
-
     /// Opens a MCP2210 by path
     ///
     /// # Panics
@@ -206,22 +190,6 @@ impl Mcp2210 {
             }
         }
         Ok(())
-    }
-}
-
-pub trait Mcp2210Identity {
-    fn open(self) -> Result<Mcp2210, Mcp2210Error>;
-}
-
-impl Mcp2210Identity for &&PathBuf {
-    fn open(self) -> Result<Mcp2210, Mcp2210Error> {
-        Mcp2210::open_path(self)
-    }
-}
-
-impl Mcp2210Identity for &&DeviceInfo {
-    fn open(self) -> Result<Mcp2210, Mcp2210Error> {
-        Mcp2210::open_device(self)
     }
 }
 
