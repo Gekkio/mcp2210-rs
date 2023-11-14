@@ -6,7 +6,7 @@ SPDX-License-Identifier: CC0-1.0
 
 # mcp2210-rs: Microchip MCP2210 library
 
-Minimum Rust version: 1.56
+Minimum Rust version: 1.63
 
 [MCP2210 datasheet](http://ww1.microchip.com/downloads/en/devicedoc/22288a.pdf)
 
