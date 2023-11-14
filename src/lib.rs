@@ -90,7 +90,9 @@ impl Error for Mcp2210Error {
     }
 }
 
-pub type Buffer = [u8; 64];
+const BUFFER_SIZE: usize = 64;
+
+pub type Buffer = [u8; BUFFER_SIZE];
 
 pub const MAX_BIT_RATE: u32 = 12_000_000;
 
@@ -100,10 +102,12 @@ pub struct Mcp2210 {
 
 impl CommandResponse for Mcp2210 {
     fn command_response(&mut self, cmd: &Buffer, res: &mut Buffer) -> HidResult<()> {
-        // TODO: What do write() and read() return when they succeed? Is it important?
-        self.device
-            .write(&[[0x00].to_vec(), cmd.to_vec()].concat())?;
-        self.device.read(res)?;
+        let data_to_write = &[[0x00].to_vec(), cmd.to_vec()].concat();
+        // At this point, length of data_to_write will be BUFFER_SIZE + 1 == 65 or smaller and responses
+        // from the MCP2210 are always BUFFER_SIZE. Therefore, this should only take single reports and
+        // these asserts should be good assumptions.
+        assert_eq!(self.device.write(data_to_write)?, data_to_write.len());
+        assert_eq!(self.device.read(res)?, BUFFER_SIZE);
         Ok(())
     }
 }
