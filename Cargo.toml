@@ -17,5 +17,5 @@ categories = ["hardware-support"]
 readme = "README.markdown"
 
 [dependencies]
-bitflags = "1.0"
+bitflags = "2.4"
 hidapi = "2.4.1"

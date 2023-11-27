@@ -31,6 +31,7 @@ impl ChipStatus {
 }
 
 bitflags!(
+    #[derive(Copy, Clone, Debug, PartialEq, Eq)]
     pub struct ChipSelect: u16 {
         const CS0 = 0b0_0000_0001;
         const CS1 = 0b0_0000_0010;
@@ -47,6 +48,7 @@ bitflags!(
 );
 
 bitflags!(
+    #[derive(Copy, Clone, Debug, PartialEq, Eq)]
     pub struct GpioValue: u16 {
         const GP0 = 0b0_0000_0001;
         const GP1 = 0b0_0000_0010;
@@ -69,6 +71,7 @@ impl Default for GpioValue {
 }
 
 bitflags!(
+    #[derive(Copy, Clone, Debug, PartialEq, Eq)]
     pub struct GpioDirection: u16 {
         const GP0DIR = 0b0_0000_0001;
         const GP1DIR = 0b0_0000_0010;
