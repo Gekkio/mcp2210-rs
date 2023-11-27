@@ -102,11 +102,12 @@ pub struct Mcp2210 {
 
 impl CommandResponse for Mcp2210 {
     fn command_response(&mut self, cmd: &Buffer, res: &mut Buffer) -> HidResult<()> {
-        let data_to_write = &[[0x00].to_vec(), cmd.to_vec()].concat();
-        // At this point, length of data_to_write will be BUFFER_SIZE + 1 == 65 or smaller and responses
-        // from the MCP2210 are always BUFFER_SIZE. Therefore, this should only take single reports and
-        // these asserts should be good assumptions.
-        assert_eq!(self.device.write(data_to_write)?, data_to_write.len());
+        let mut data_to_write = [0; 1 + BUFFER_SIZE];
+        data_to_write[0] = 0x00; // HID Report ID. For devices which only support a single report, this must be set to 0x0.
+        data_to_write[1..].copy_from_slice(cmd);
+        // At this point, length of data_to_write will be 1+BUFFER_SIZE == 65 and responses from the MCP2210 are always
+        // BUFFER_SIZE. Therefore, this should only take single reports and these asserts should be good assumptions.
+        assert_eq!(self.device.write(&data_to_write)?, data_to_write.len());
         assert_eq!(self.device.read(res)?, BUFFER_SIZE);
         Ok(())
     }
