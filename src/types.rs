@@ -280,17 +280,12 @@ impl ChipSettings {
     }
 }
 
-#[derive(Copy, Clone, Debug, PartialEq, Eq)]
+#[derive(Copy, Clone, Debug, PartialEq, Eq, Default)]
 pub enum NvramAccessControl {
+    #[default]
     None,
     Password = 0x40,
     PermanentlyLocked = 0x80,
-}
-
-impl Default for NvramAccessControl {
-    fn default() -> NvramAccessControl {
-        NvramAccessControl::None
-    }
 }
 
 impl NvramAccessControl {
@@ -304,19 +299,14 @@ impl NvramAccessControl {
     }
 }
 
-#[derive(Copy, Clone, Debug, PartialEq, Eq)]
+#[derive(Copy, Clone, Debug, PartialEq, Eq, Default)]
 pub enum InterruptMode {
+    #[default]
     None = 0b000,
     FallingEdges = 0b001,
     RisingEdges = 0b010,
     LowPulses = 0b011,
     HighPulses = 0b100,
-}
-
-impl Default for InterruptMode {
-    fn default() -> InterruptMode {
-        InterruptMode::None
-    }
 }
 
 impl InterruptMode {

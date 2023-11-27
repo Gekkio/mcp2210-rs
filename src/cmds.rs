@@ -319,10 +319,10 @@ fn test_get_chip_status() {
     let mut expected_cmd = [0; 64];
     expected_cmd[0] = 0x10;
     assert_eq!(tx.cmd.as_ref(), expected_cmd.as_ref());
-    assert_eq!(status.is_bus_release_pending, false);
+    assert!(!status.is_bus_release_pending);
     assert_eq!(status.bus_owner, BusOwner::ExternalMaster);
     assert_eq!(status.password_attempt_count, 42);
-    assert_eq!(status.is_password_guessed, true);
+    assert!(status.is_password_guessed);
 }
 
 #[test]
@@ -332,8 +332,8 @@ fn test_cancel_spi_transfer() {
     let mut expected_cmd = [0; 64];
     expected_cmd[0] = 0x11;
     assert_eq!(tx.cmd.as_ref(), expected_cmd.as_ref());
-    assert_eq!(status.is_bus_release_pending, true);
+    assert!(status.is_bus_release_pending);
     assert_eq!(status.bus_owner, BusOwner::UsbBridge);
     assert_eq!(status.password_attempt_count, 79);
-    assert_eq!(status.is_password_guessed, false);
+    assert!(!status.is_password_guessed);
 }
