@@ -9,7 +9,7 @@ use mcp2210::{Commands, Mcp2210, SpiMode, SpiTransferSettings};
 fn main() {
     let devices = mcp2210::scan_devices().expect("Failed to scan devices");
     let device = devices.first().expect("No devices found");
-    let mut mcp = Mcp2210::open_device(&device).expect("Failed to open device");
+    let mut mcp = Mcp2210::open_device(device).expect("Failed to open device");
     mcp.set_spi_transfer_settings(&SpiTransferSettings {
         bit_rate: 1_000,
         bytes_per_tx: 2,
