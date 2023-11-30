@@ -12,15 +12,14 @@ pub use crate::types::*;
 use hidapi::{DeviceInfo, HidApi, HidDevice, HidError, HidResult};
 use std::cmp::min;
 use std::error::Error;
-use std::ffi::{CString, NulError};
 use std::fmt;
-use std::path::{Path, PathBuf};
+
+pub const FACTORY_VID: u16 = 0x04d8;
+pub const FACTORY_PID: u16 = 0x00de;
 
 #[derive(Debug)]
 pub enum Mcp2210Error {
     Hid(HidError),
-    NonUtf8Path(PathBuf),
-    NulCharInPath(NulError),
     CommandCode { expected: u8, actual: u8 },
     SubCommandCode { expected: u8, actual: u8 },
     InvalidResponse(String),
@@ -44,8 +43,6 @@ impl fmt::Display for Mcp2210Error {
         use crate::Mcp2210Error::*;
         match self {
             Hid(err) => fmt::Display::fmt(err, f),
-            NonUtf8Path(path) => write!(f, "Non UTF-8 path: {:?}", path),
-            NulCharInPath(err) => write!(f, "Nul character found in path: {}", err),
             CommandCode { expected, actual } => write!(
                 f,
                 "Invalid command code (expected {:2x}, got {:2x})",
@@ -114,56 +111,12 @@ impl CommandResponse for Mcp2210 {
 }
 
 impl Mcp2210 {
-    /// Opens a MCP2210 by path
+    /// Converts a HidDevice to a Mcp2210.
     ///
-    /// # Panics
-    ///
-    /// Under the hood this calls the `hidapi::HidApi::new()` function which panics if hidapi is already
-    /// initialized in "without enumerate" mode (i.e. if `HidApi::new_without_enumerate()` has been called before).
-    /// This would also cause a later call to `HidApi::new_without_enumberate()` to panic.
-    pub fn open_path<P: AsRef<Path>>(path: P) -> Result<Mcp2210, Mcp2210Error> {
-        // Path to CString
-        let path_cstr = CString::new(
-            path.as_ref()
-                .to_str()
-                .ok_or_else(|| Mcp2210Error::NonUtf8Path(path.as_ref().to_owned()))?,
-        )
-        .map_err(Mcp2210Error::NulCharInPath)?;
-
-        let context = HidApi::new().map_err(Mcp2210Error::Hid)?;
-        let device = context.open_path(&path_cstr).map_err(Mcp2210Error::Hid)?;
-        Ok(Mcp2210 { device })
-    }
-
-    /// Opens a MCP2210 using a Vendor ID (VID), Product ID (PID) and a serial number.
-    ///
-    /// # Panics
-    ///
-    /// Under the hood this calls the `hidapi::HidApi::new()` function which panics if hidapi is already
-    /// initialized in "without enumerate" mode (i.e. if `HidApi::new_without_enumerate()` has been called before).
-    /// This would also cause a later call to `HidApi::new_without_enumberate()` to panic.
-    pub fn open_serial(vid: u16, pid: u16, sn: &str) -> Result<Mcp2210, Mcp2210Error> {
-        let context = HidApi::new().map_err(Mcp2210Error::Hid)?;
-        let device = context
-            .open_serial(vid, pid, sn)
-            .map_err(Mcp2210Error::Hid)?;
-        Ok(Mcp2210 { device })
-    }
-
-    /// Opens a MCP2210 using a &DeviceInfo whice you may optain with the `scan_devices_with_filter()` or
-    /// `scan_devices()` functions.
-    ///
-    /// # Panics
-    ///
-    /// Under the hood this calls the `hidapi::HidApi::new()` function which panics if hidapi is already
-    /// initialized in "without enumerate" mode (i.e. if `HidApi::new_without_enumerate()` has been called before).
-    /// This would also cause a later call to `HidApi::new_without_enumberate()` to panic.
-    pub fn open_device(device_info: &DeviceInfo) -> Result<Mcp2210, Mcp2210Error> {
-        let context = HidApi::new().map_err(Mcp2210Error::Hid)?;
-        let device = device_info
-            .open_device(&context)
-            .map_err(Mcp2210Error::Hid)?;
-        Ok(Mcp2210 { device })
+    /// If the passed HidDevice is not actually a MCP2210 device, unexpected things are likely to happen when you
+    /// use the Mcp2210 later.
+    pub fn from(device: HidDevice) -> Mcp2210 {
+        Mcp2210 { device }
     }
 
     pub fn spi_transfer_to_end(
@@ -198,34 +151,19 @@ impl Mcp2210 {
     }
 }
 
-/// Scans devices for the default vendor ID and product ID that the MCP2210 comes with
-///
-/// # Panics
-///
-/// Under the hood this calls the `hidapi::HidApi::new()` function which panics if hidapi is already
-/// initialized in "without enumerate" mode (i.e. if `HidApi::new_without_enumerate()` has been called before).
-/// This would also cause a later call to `HidApi::new_without_enumberate()` to panic.
-pub fn scan_devices() -> Result<Vec<DeviceInfo>, Mcp2210Error> {
-    scan_devices_with_filter(|d| d.vendor_id() == 0x04d8 && d.product_id() == 0x00de)
+/// True if the device has the MCP2210's factory Vendor ID (VID) and Product ID (VID).
+pub fn is_mcp2210(device_info: &DeviceInfo) -> bool {
+    device_info.vendor_id() == FACTORY_VID && device_info.product_id() == FACTORY_PID
 }
 
-/// Scans devices with a provided filter
+/// Open the first HID device it finds with the MCP2210's factory Vendor ID (VID) and Product ID (PID).
 ///
-/// # Panics
-///
-/// Under the hood this calls the `hidapi::HidApi::new()` function which panics if hidapi is already
-/// initialized in "without enumerate" mode (i.e. if `HidApi::new_without_enumerate()` has been called before).
-/// This would also cause a later call to `HidApi::new_without_enumberate()` to panic.
-pub fn scan_devices_with_filter<F: FnMut(&DeviceInfo) -> bool>(
-    mut f: F,
-) -> Result<Vec<DeviceInfo>, Mcp2210Error> {
-    let mut results = Vec::new();
-    let context = HidApi::new().map_err(Mcp2210Error::Hid)?;
-    let devices = context.device_list();
-    for d in devices {
-        if f(d) {
-            results.push(d.to_owned());
-        }
-    }
-    Ok(results)
+/// When multiple devices with the MCP2210's factory VID and PID are available, then the first one
+/// found in the internal device list will be used. There are however no guarantees, which device this
+/// will be.
+pub fn open_first(hidapi_context: &HidApi) -> Result<Mcp2210, Mcp2210Error> {
+    let mcp = hidapi_context
+        .open(FACTORY_VID, FACTORY_PID)
+        .map_err(Mcp2210Error::Hid)?;
+    Ok(Mcp2210::from(mcp))
 }

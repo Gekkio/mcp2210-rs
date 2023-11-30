@@ -4,7 +4,8 @@
 
 extern crate mcp2210;
 
-use mcp2210::{Commands, Mcp2210, SpiMode, SpiTransferSettings};
+use hidapi::HidApi;
+use mcp2210::{open_first, Commands, SpiMode, SpiTransferSettings};
 
 fn main() {
     //! ##################################################################################
@@ -17,9 +18,8 @@ fn main() {
     //! data is simultaneously recieved at the MISO pin. The circuit required for this is
     //! simply a wire between the MOSI and MISO pins of the MCP2210 and no real slave device.
 
-    let devices = mcp2210::scan_devices().expect("Failed to scan devices");
-    let device = devices.first().expect("No devices found");
-    let mut mcp = Mcp2210::open_device(device).expect("Failed to open device");
+    let hidapi_context = HidApi::new().expect("Could not create hidapi context");
+    let mut mcp = open_first(&hidapi_context).expect("Failed to connect");
     mcp.set_spi_transfer_settings(&SpiTransferSettings {
         bit_rate: 1_000,
         bytes_per_tx: 2,
