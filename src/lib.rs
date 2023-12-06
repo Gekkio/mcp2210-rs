@@ -115,7 +115,7 @@ impl Mcp2210 {
     ///
     /// If the passed HidDevice is not actually a MCP2210 device, unexpected things are likely to happen when you
     /// use the Mcp2210 later.
-    pub fn from(device: HidDevice) -> Mcp2210 {
+    pub fn new(device: HidDevice) -> Mcp2210 {
         Mcp2210 { device }
     }
 
@@ -165,5 +165,5 @@ pub fn open_first(hidapi_context: &HidApi) -> Result<Mcp2210, Mcp2210Error> {
     let mcp = hidapi_context
         .open(FACTORY_VID, FACTORY_PID)
         .map_err(Mcp2210Error::Hid)?;
-    Ok(Mcp2210::from(mcp))
+    Ok(Mcp2210::new(mcp))
 }
