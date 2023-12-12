@@ -31,6 +31,7 @@ impl ChipStatus {
 }
 
 bitflags!(
+    #[derive(Copy, Clone, Debug, PartialEq, Eq)]
     pub struct ChipSelect: u16 {
         const CS0 = 0b0_0000_0001;
         const CS1 = 0b0_0000_0010;
@@ -47,6 +48,7 @@ bitflags!(
 );
 
 bitflags!(
+    #[derive(Copy, Clone, Debug, PartialEq, Eq)]
     pub struct GpioValue: u16 {
         const GP0 = 0b0_0000_0001;
         const GP1 = 0b0_0000_0010;
@@ -69,6 +71,7 @@ impl Default for GpioValue {
 }
 
 bitflags!(
+    #[derive(Copy, Clone, Debug, PartialEq, Eq)]
     pub struct GpioDirection: u16 {
         const GP0DIR = 0b0_0000_0001;
         const GP1DIR = 0b0_0000_0010;
@@ -277,17 +280,12 @@ impl ChipSettings {
     }
 }
 
-#[derive(Copy, Clone, Debug, PartialEq, Eq)]
+#[derive(Copy, Clone, Debug, PartialEq, Eq, Default)]
 pub enum NvramAccessControl {
+    #[default]
     None,
     Password = 0x40,
     PermanentlyLocked = 0x80,
-}
-
-impl Default for NvramAccessControl {
-    fn default() -> NvramAccessControl {
-        NvramAccessControl::None
-    }
 }
 
 impl NvramAccessControl {
@@ -301,19 +299,14 @@ impl NvramAccessControl {
     }
 }
 
-#[derive(Copy, Clone, Debug, PartialEq, Eq)]
+#[derive(Copy, Clone, Debug, PartialEq, Eq, Default)]
 pub enum InterruptMode {
+    #[default]
     None = 0b000,
     FallingEdges = 0b001,
     RisingEdges = 0b010,
     LowPulses = 0b011,
     HighPulses = 0b100,
-}
-
-impl Default for InterruptMode {
-    fn default() -> InterruptMode {
-        InterruptMode::None
-    }
 }
 
 impl InterruptMode {

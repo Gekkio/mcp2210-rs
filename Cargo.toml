@@ -7,7 +7,7 @@ name = "mcp2210"
 version = "0.2.0-pre"
 authors = ["Joonas Javanainen <joonas.javanainen@gmail.com>"]
 edition = "2021"
-rust-version = "1.56"
+rust-version = "1.63"
 description = "Microchip MCP2210 communication library"
 homepage = "https://github.com/Gekkio/mcp2210-rs"
 repository = "https://github.com/Gekkio/mcp2210-rs"
@@ -17,5 +17,5 @@ categories = ["hardware-support"]
 readme = "README.markdown"
 
 [dependencies]
-bitflags = "1.0"
-libudev = "0.2"
+bitflags = "2.4"
+hidapi = "2.4.1"

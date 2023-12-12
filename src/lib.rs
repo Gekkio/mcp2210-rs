@@ -9,18 +9,17 @@ mod utils;
 pub use crate::cmds::*;
 pub use crate::types::*;
 
-use libudev::Device;
+use hidapi::{DeviceInfo, HidApi, HidDevice, HidError, HidResult};
 use std::cmp::min;
 use std::error::Error;
-use std::ffi::OsStr;
 use std::fmt;
-use std::fs::{File, OpenOptions};
-use std::io;
-use std::path::{Path, PathBuf};
+
+pub const FACTORY_VID: u16 = 0x04d8;
+pub const FACTORY_PID: u16 = 0x00de;
 
 #[derive(Debug)]
 pub enum Mcp2210Error {
-    Io(io::Error),
+    Hid(HidError),
     CommandCode { expected: u8, actual: u8 },
     SubCommandCode { expected: u8, actual: u8 },
     InvalidResponse(String),
@@ -43,7 +42,7 @@ impl fmt::Display for Mcp2210Error {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         use crate::Mcp2210Error::*;
         match self {
-            Io(err) => fmt::Display::fmt(err, f),
+            Hid(err) => fmt::Display::fmt(err, f),
             CommandCode { expected, actual } => write!(
                 f,
                 "Invalid command code (expected {:2x}, got {:2x})",
@@ -82,35 +81,44 @@ impl Error for Mcp2210Error {
     fn source(&self) -> Option<&(dyn Error + 'static)> {
         use crate::Mcp2210Error::*;
         match self {
-            Io(err) => Some(err),
+            Hid(err) => Some(err),
             _ => None,
         }
     }
 }
 
-pub type Buffer = [u8; 64];
+const BUFFER_SIZE: usize = 64;
+
+pub type Buffer = [u8; BUFFER_SIZE];
 
 pub const MAX_BIT_RATE: u32 = 12_000_000;
 
 pub struct Mcp2210 {
-    file: File,
+    device: HidDevice,
 }
 
 impl CommandResponse for Mcp2210 {
-    fn command_response(&mut self, cmd: &Buffer, res: &mut Buffer) -> io::Result<()> {
-        self.file.command_response(cmd, res)
+    fn command_response(&mut self, cmd: &Buffer, res: &mut Buffer) -> HidResult<()> {
+        let mut data_to_write = [0; 1 + BUFFER_SIZE];
+        data_to_write[0] = 0x00; // HID Report ID. For devices which only support a single report, this must be set to 0x0.
+        data_to_write[1..].copy_from_slice(cmd);
+        // At this point, length of data_to_write will be 1+BUFFER_SIZE == 65 and responses from the MCP2210 are always
+        // BUFFER_SIZE. Therefore, this should only take single reports and these asserts should be good assumptions.
+        assert_eq!(self.device.write(&data_to_write)?, data_to_write.len());
+        assert_eq!(self.device.read(res)?, BUFFER_SIZE);
+        Ok(())
     }
 }
 
 impl Mcp2210 {
-    pub fn open<P: AsRef<Path>>(path: P) -> Result<Mcp2210, Mcp2210Error> {
-        let file = OpenOptions::new()
-            .read(true)
-            .write(true)
-            .open(path)
-            .map_err(Mcp2210Error::Io)?;
-        Ok(Mcp2210 { file })
+    /// Converts a HidDevice to a Mcp2210.
+    ///
+    /// If the passed HidDevice is not actually a MCP2210 device, unexpected things are likely to happen when you
+    /// use the Mcp2210 later.
+    pub fn new(device: HidDevice) -> Mcp2210 {
+        Mcp2210 { device }
     }
+
     pub fn spi_transfer_to_end(
         &mut self,
         mut data: &[u8],
@@ -143,36 +151,19 @@ impl Mcp2210 {
     }
 }
 
-pub fn scan_devices() -> io::Result<Vec<PathBuf>> {
-    scan_devices_with_filter(|d| {
-        let vendor_id = d.property_value("ID_VENDOR_ID");
-        let model_id = d.property_value("ID_MODEL_ID");
-        vendor_id == Some(OsStr::new("04d8")) && model_id == Some(OsStr::new("00de"))
-    })
+/// True if the device has the MCP2210's factory Vendor ID (VID) and Product ID (VID).
+pub fn is_mcp2210(device_info: &DeviceInfo) -> bool {
+    device_info.vendor_id() == FACTORY_VID && device_info.product_id() == FACTORY_PID
 }
 
-pub fn scan_devices_with_filter<F: FnMut(Device) -> bool>(mut f: F) -> io::Result<Vec<PathBuf>> {
-    let mut results = Vec::new();
-    if let Ok(context) = libudev::Context::new() {
-        let mut enumerator = libudev::Enumerator::new(&context)?;
-        enumerator.match_subsystem("hidraw")?;
-        let devices = enumerator.scan_devices()?;
-        for d in devices {
-            if let Some(devnode) = d.devnode() {
-                if let Some(d) = d.parent() {
-                    if let Some(d) = d.parent() {
-                        if let Some(d) = d.parent() {
-                            if d.property_value("ID_BUS") != Some(OsStr::new("usb")) {
-                                continue;
-                            }
-                            if f(d) {
-                                results.push(devnode.to_owned());
-                            }
-                        }
-                    }
-                }
-            }
-        }
-    }
-    Ok(results)
+/// Open the first HID device it finds with the MCP2210's factory Vendor ID (VID) and Product ID (PID).
+///
+/// When multiple devices with the MCP2210's factory VID and PID are available, then the first one
+/// found in the internal device list will be used. There are however no guarantees, which device this
+/// will be.
+pub fn open_first(hidapi_context: &HidApi) -> Result<Mcp2210, Mcp2210Error> {
+    let mcp = hidapi_context
+        .open(FACTORY_VID, FACTORY_PID)
+        .map_err(Mcp2210Error::Hid)?;
+    Ok(Mcp2210::new(mcp))
 }

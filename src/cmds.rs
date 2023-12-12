@@ -5,11 +5,11 @@
 use super::{Buffer, Mcp2210Error};
 use crate::types::*;
 use crate::utils::{as_u16, encode_utf16_to_buffer};
+use hidapi::HidResult;
 use std::cmp::min;
-use std::io::{self, Read, Write};
 
 pub trait CommandResponse {
-    fn command_response(&mut self, cmd: &Buffer, res: &mut Buffer) -> io::Result<()>;
+    fn command_response(&mut self, cmd: &Buffer, res: &mut Buffer) -> HidResult<()>;
     fn do_command<F>(&mut self, cmd_code: u8, res: &mut Buffer, f: F) -> Result<(), Mcp2210Error>
     where
         F: FnOnce(&mut Buffer),
@@ -17,7 +17,8 @@ pub trait CommandResponse {
         let mut cmd: Buffer = [0; 64];
         cmd[0] = cmd_code;
         f(&mut cmd);
-        self.command_response(&cmd, res).map_err(Mcp2210Error::Io)?;
+        self.command_response(&cmd, res)
+            .map_err(Mcp2210Error::Hid)?;
         if cmd_code != res[0] {
             return Err(Mcp2210Error::CommandCode {
                 expected: cmd_code,
@@ -58,16 +59,6 @@ pub trait CommandResponse {
         } else {
             Ok(())
         }
-    }
-}
-
-impl<T> CommandResponse for T
-where
-    T: Read + Write + Sized,
-{
-    fn command_response(&mut self, cmd: &Buffer, res: &mut Buffer) -> io::Result<()> {
-        self.write_all(cmd)?;
-        self.read_exact(res)
     }
 }
 
@@ -314,7 +305,7 @@ impl TestTx {
 
 #[cfg(test)]
 impl CommandResponse for TestTx {
-    fn command_response(&mut self, cmd: &Buffer, res: &mut Buffer) -> io::Result<()> {
+    fn command_response(&mut self, cmd: &Buffer, res: &mut Buffer) -> HidResult<()> {
         self.cmd.copy_from_slice(cmd);
         res.copy_from_slice(&self.res);
         Ok(())
@@ -328,10 +319,10 @@ fn test_get_chip_status() {
     let mut expected_cmd = [0; 64];
     expected_cmd[0] = 0x10;
     assert_eq!(tx.cmd.as_ref(), expected_cmd.as_ref());
-    assert_eq!(status.is_bus_release_pending, false);
+    assert!(!status.is_bus_release_pending);
     assert_eq!(status.bus_owner, BusOwner::ExternalMaster);
     assert_eq!(status.password_attempt_count, 42);
-    assert_eq!(status.is_password_guessed, true);
+    assert!(status.is_password_guessed);
 }
 
 #[test]
@@ -341,8 +332,8 @@ fn test_cancel_spi_transfer() {
     let mut expected_cmd = [0; 64];
     expected_cmd[0] = 0x11;
     assert_eq!(tx.cmd.as_ref(), expected_cmd.as_ref());
-    assert_eq!(status.is_bus_release_pending, true);
+    assert!(status.is_bus_release_pending);
     assert_eq!(status.bus_owner, BusOwner::UsbBridge);
     assert_eq!(status.password_attempt_count, 79);
-    assert_eq!(status.is_password_guessed, false);
+    assert!(!status.is_password_guessed);
 }

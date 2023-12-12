@@ -6,12 +6,12 @@
 
 extern crate mcp2210;
 
-use mcp2210::*;
+use hidapi::HidApi;
+use mcp2210::{open_first, Commands};
 
 fn main() {
-    let devices = mcp2210::scan_devices().expect("Failed to scan devices");
-    let device = devices.iter().next().expect("No devices found");
-    let mut mcp = Mcp2210::open(&device).expect("Failed to open device");
+    let hidapi_context = HidApi::new().expect("Could not create hidapi context");
+    let mut mcp = open_first(&hidapi_context).expect("Failed to connect");
     println!("Current Chip Status");
     println!("===================");
     println!(
