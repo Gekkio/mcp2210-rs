@@ -8,6 +8,8 @@ SPDX-License-Identifier: CC0-1.0
 
 ## [Unreleased]
 
+## 0.2.0 - 2023-12-12
+
 ### Added
 
 - `Debug` implementation for `UsbParameters`
