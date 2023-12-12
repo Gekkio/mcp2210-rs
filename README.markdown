@@ -10,7 +10,7 @@ Minimum Rust version: 1.63
 
 [MCP2210 datasheet](http://ww1.microchip.com/downloads/en/devicedoc/22288a.pdf)
 
-[![Build Status](https://github.com/Gekkio/mcp2210-rs/workflows/ci/badge.svg)](https://github.com/Gekkio/mcp2210-rs/actions)
+[![Build Status](https://github.com/Gekkio/mcp2210-rs/actions/workflows/ci/badge.svg)](https://github.com/Gekkio/mcp2210-rs/actions)
 [![Latest release on crates.io](https://img.shields.io/crates/v/mcp2210.svg)](https://crates.io/crates/mcp2210)
 [![Documentation on docs.rs](https://docs.rs/mcp2210/badge.svg)](https://docs.rs/mcp2210)
 
